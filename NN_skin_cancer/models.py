@@ -45,7 +45,7 @@ def efficientnet_b7(config):
 def modify_meta(mdlParams,model):
     # Define FC layers
     if len(mdlParams['fc_layers_before']) > 1:
-        model.meta_before = nn.Sequential(nn.Linear(mdlParams['meta_array'].shape[1],mdlParams['fc_layers_before'][0]),
+        model.meta_before = nn.Sequential(nn.Linear(len(mdlParams['meta_features']),mdlParams['fc_layers_before'][0]),
                                     nn.BatchNorm1d(mdlParams['fc_layers_before'][0]),
                                     nn.ReLU(),
                                     nn.Dropout(p=mdlParams['dropout_meta']),
@@ -54,7 +54,7 @@ def modify_meta(mdlParams,model):
                                     nn.ReLU(),
                                     nn.Dropout(p=mdlParams['dropout_meta']))
     else:
-        model.meta_before = nn.Sequential(nn.Linear(mdlParams['meta_array'].shape[1],mdlParams['fc_layers_before'][0]),
+        model.meta_before = nn.Sequential(nn.Linear(len(mdlParams['meta_features']),mdlParams['fc_layers_before'][0]),
                                     nn.BatchNorm1d(mdlParams['fc_layers_before'][0]),
                                     nn.ReLU(),
                                     nn.Dropout(p=mdlParams['dropout_meta']))
@@ -79,7 +79,7 @@ def modify_meta(mdlParams,model):
         # Pooling and final linear layer
         cnn_features = F.adaptive_avg_pool2d(cnn_features, 1).squeeze(-1).squeeze(-1)
         if self._dropout:
-            cnn_features = F.dropout(cnn_features, p=self._dropout, training=self.training)
+            cnn_features = F.dropout(cnn_features, p=self._global_params.dropout_rate, training=self.training)
         # Meta part
         #print(meta_data.shape,meta_data)
         meta_features = self.meta_before(meta_data)
