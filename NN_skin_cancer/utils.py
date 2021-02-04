@@ -17,7 +17,7 @@ from tools.auto_augment import AutoAugment, Cutout
 class ISICDataset(Dataset):
     """ISIC dataset."""
 
-    def __init__(self, mdlParams, indSet):
+    def __init__(self, mdlParams, indSet, fold=-1):
         """
         Args:
             mdlParams (dict): Configuration for loading
@@ -29,10 +29,15 @@ class ISICDataset(Dataset):
         self.indSet = indSet
         if self.indSet == 'trainInd':
             self.root = mdlParams['dataDir'] + '/train'
+            assert(fold > 0 and fold <= mdlParams['fold'])
+            self.fold = fold
         elif self.indSet == 'valInd':
-            self.root = mdlParams['dataDir'] + '/valid'
+            self.root = mdlParams['dataDir'] + '/train'
+            assert(fold > 0 and fold <= mdlParams['fold'])
+            self.fold = fold
         else:
             self.root = mdlParams['dataDir'] + '/test'
+            assert(fold < 0)
         self.names_list = []
         # Number of classes
         self.numClasses = mdlParams['numClasses']
@@ -46,7 +51,7 @@ class ISICDataset(Dataset):
         self.setMean = mdlParams['setMean'].astype(np.float32)
         self.setStd = mdlParams['setStd'].astype(np.float32)
         # Only downsample
-        self.only_downsmaple = mdlParams.get('only_downsmaple', False)
+        self.only_downsmaple = mdlParams.get('only_downsmaple', True)
         # Meta csv
         self.meta_path = mdlParams['meta_path']
         self.meta_df = pd.read_pickle(self.meta_path)
@@ -55,19 +60,35 @@ class ISICDataset(Dataset):
         self.subsets_size = []
         self.image_path = []
         for dir in os.listdir(self.root):
-            subset_size = 0
+            subset_img_path = []
+            subset_name_list = []
             dir_path = os.path.join(self.root, dir)
             for image in os.listdir(dir_path):
-                self.names_list.append({
+                subset_name_list.append({
                     'id': image.split('.')[0],
                     'label': class_label,
                 })
-                self.image_path.append(os.path.join(dir_path))
-                subset_size += 1
+                subset_img_path.append(os.path.join(dir_path))
+            subset_size = len(subset_img_path)
+            self.names_list.append(subset_name_list)
+            self.image_path.append(subset_img_path)
             self.subsets_size.append(subset_size)
             class_label += 1
 
         if indSet == 'trainInd':
+            new_names_list = []
+            new_image_path = []
+            for i in range(self.numClasses):
+                print('Before folding: ' + str(self.subsets_size[i]))
+                fold_len = self.subsets_size[i] / self.fold
+                self.names_list[i] = self.names_list[i][:(self.fold - 1)*fold_len] + self.names_list[i][self.fold *fold_len:]
+                self.image_path[i] = self.image_path[i][:(self.fold - 1)*fold_len] + self.image_path[i][self.fold *fold_len:]
+                self.subsets_size[i] = len(self.names_list[i])
+                print('After folding: ' + str(self.subsets_size[i]))
+                new_names_list += self.names_list[i]
+                new_image_path += self.image_path[i]
+            self.names_list = new_names_list
+            self.image_path = new_image_path
             all_transforms = []
             if self.only_downsmaple:
                 all_transforms.append(transforms.Resize(self.input_size))
@@ -80,21 +101,9 @@ class ISICDataset(Dataset):
             # Full rot
             if mdlParams.get('full_rot', 0) > 0:
                 if mdlParams.get('scale', False):
-                    all_transforms.append(transforms.RandomChoice([transforms.RandomAffine(mdlParams['full_rot'],
-                                                                                           scale=mdlParams['scale'],
-                                                                                           shear=mdlParams.get('shear',
-                                                                                                               0),
-                                                                                           resample=Image.NEAREST),
-                                                                   transforms.RandomAffine(mdlParams['full_rot'],
-                                                                                           scale=mdlParams['scale'],
-                                                                                           shear=mdlParams.get('shear',
-                                                                                                               0),
-                                                                                           resample=Image.BICUBIC),
-                                                                   transforms.RandomAffine(mdlParams['full_rot'],
-                                                                                           scale=mdlParams['scale'],
-                                                                                           shear=mdlParams.get('shear',
-                                                                                                               0),
-                                                                                           resample=Image.BILINEAR)]))
+                    all_transforms.append(transforms.RandomChoice([transforms.RandomAffine(mdlParams['full_rot'], scale=mdlParams['scale'], shear=mdlParams.get('shear', 0), resample=Image.NEAREST),
+                                                                   transforms.RandomAffine(mdlParams['full_rot'], scale=mdlParams['scale'], shear=mdlParams.get('shear', 0), resample=Image.BICUBIC),
+                                                                   transforms.RandomAffine(mdlParams['full_rot'], scale=mdlParams['scale'], shear=mdlParams.get('shear', 0), resample=Image.BILINEAR)]))
                 else:
                     all_transforms.append(transforms.RandomChoice(
                         [transforms.RandomRotation(mdlParams['full_rot'], resample=Image.NEAREST),
@@ -120,13 +129,42 @@ class ISICDataset(Dataset):
                 transforms.Normalize(np.float32(self.mdlParams['setMean']), np.float32(self.mdlParams['setStd'])))
             # All transforms
             self.composed = transforms.Compose(all_transforms)
-        else:
+        elif indSet == 'validInd':
+            new_names_list = []
+            new_image_path = []
+            for i in range(self.numClasses):
+                print('Before folding: ' + str(self.subsets_size[i]))
+                fold_len = self.subsets_size[i] / self.fold
+                self.names_list[i] = self.names_list[i][(self.fold - 1)*fold_len: self.fold*fold_len]
+                self.image_path[i] = self.image_path[i][(self.fold - 1)*fold_len: self.fold*fold_len]
+                self.subsets_size[i] = len(self.names_list[i])
+                print('After folding: ' + str(self.subsets_size[i]))
+                new_names_list += self.names_list[i]
+                new_image_path += self.image_path[i]
+            self.names_list = new_names_list
+            self.image_path = new_image_path
+
             self.composed = transforms.Compose([
                 transforms.Resize(self.input_size),
                 transforms.ToTensor(),
                 transforms.Normalize(torch.from_numpy(self.setMean).float(),
                                      torch.from_numpy(self.setStd).float())
             ])
+        else:
+            new_names_list = []
+            new_image_path = []
+            for i in range(self.numClasses):
+                new_names_list += self.names_list[i]
+                new_image_path += self.image_path[i]
+            self.names_list = new_names_list
+            self.image_path = new_image_path
+
+            self.composed = transforms.Compose([
+                transforms.Resize(self.input_size),
+                transforms.ToTensor(),
+                transforms.Normalize(torch.from_numpy(self.setMean).float(),
+                                     torch.from_numpy(self.setStd).float())
+                ])
 
     def __len__(self):
         return len(self.names_list)
@@ -198,10 +236,6 @@ class FocalLoss(nn.Module):
         self.size_average = size_average
 
     def forward(self, input, target):
-        if input.dim() > 2:
-            input = input.view(input.size(0), input.size(1), -1)  # N,C,H,W => N,C,H*W
-            input = input.transpose(1, 2)  # N,C,H*W => N,H*W,C
-            input = input.contiguous().view(-1, input.size(2))  # N,H*W,C => N*H*W,C
         target = target.view(-1, 1)
 
         logpt = F.log_softmax(input, dim=1)

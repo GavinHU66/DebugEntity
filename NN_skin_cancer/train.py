@@ -39,11 +39,12 @@ model_cfg = importlib.import_module('cfgs.'+sys.argv[2])
 mdlParams_model = model_cfg.init(mdlParams)
 mdlParams.update(mdlParams_model)
 
-# Indicate training
-mdlParams['trainSetState'] = 'train'
+# Fold num
+fold_num = int(sys.argv[4])
+assert(fold_num > 0 and fold_num <= mdlParams['fold'])
 
 # Path name from filename
-mdlParams['saveDirBase'] = mdlParams['saveDir'] + '/' + sys.argv[2]
+mdlParams['saveDirBase'] = mdlParams['saveDir'] + '/' + sys.argv[2] + '/fold' + str(fold_num)
 
 # Set visible devices
 if 'gpu' in sys.argv[3]:
@@ -80,7 +81,6 @@ save_dict['spec'] = []
 save_dict['f1'] = []
 save_dict['step_num'] = []
 
-# Check if there is a validation set, if not, evaluate train error instead
 eval_set = 'valInd'
 
 if not os.path.isdir(mdlParams['saveDirBase']):
@@ -108,10 +108,10 @@ modelVars = {}
 modelVars['device'] = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # For train
-dataset_train = utils.ISICDataset(mdlParams, 'trainInd')
+dataset_train = utils.ISICDataset(mdlParams, 'trainInd', fold=fold_num)
 modelVars['dataloader_trainInd'] = DataLoader(dataset_train, batch_size=mdlParams['batchSize'], shuffle=True)
 # For val
-dataset_val = utils.ISICDataset(mdlParams, 'valInd')
+dataset_val = utils.ISICDataset(mdlParams, 'valInd', fold=fold_num)
 modelVars['dataloader_valInd'] = DataLoader(dataset_val, batch_size=mdlParams['batchSize'], shuffle=False)
 
 # Define model
@@ -255,7 +255,7 @@ for step in range(start_epoch, mdlParams['training_steps'] + 1):
             inputs[1] = inputs[1].type_as(inputs[0])
             inputs[1] = inputs[1].cuda()
         else:
-            inputs = inputs.cuda()
+            inputs = inputs[0].cuda()
         # print(inputs.shape)
         labels = labels.cuda()
         # zero the parameter gradients
@@ -279,7 +279,7 @@ for step in range(start_epoch, mdlParams['training_steps'] + 1):
                 inputs[1] = inputs[1].type_as(inputs[0])
                 inputs[1] = inputs[1].cuda()
             else:
-                inputs = inputs.to(modelVars['device'])
+                inputs = inputs[0].to(modelVars['device'])
             labels = labels.to(modelVars['device'])
             with torch.set_grad_enabled(False):
                 # Get outputs
