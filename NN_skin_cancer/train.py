@@ -58,7 +58,7 @@ if 'gpu' in sys.argv[3]:
         if i is not len(mdlParams['numGPUs'])-1:
             cuda_str = cuda_str + ","
     print("Devices to use:",cuda_str)
-    os.environ["CUDA_VISIBLE_DEVICES"] = cuda_str
+#    os.environ["CUDA_VISIBLE_DEVICES"] = cuda_str
 
 # Check if there is something to load
 load_old = 0
@@ -108,7 +108,7 @@ else:
     allData['targets'] = {}
 
 modelVars = {}
-modelVars['device'] = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+modelVars['device'] = torch.device("cuda:" + cuda_str.strip())
 
 # For train
 dataset_train = utils.ISICDataset(mdlParams, 'trainInd', fold=fold_num)
@@ -180,9 +180,9 @@ if mdlParams.get('with_meta', False):
 
 if mdlParams['focal_loss']:
     modelVars['criterion'] = utils.FocalLoss(mdlParams['numClasses'],
-                                             alpha=torch.cuda.FloatTensor(class_weights.astype(np.float32)))
+                                             alpha=torch.FloatTensor(class_weights.astype(np.float32)).to(modelVars['device']))
 else:
-    modelVars['criterion'] = nn.CrossEntropyLoss(weight=torch.cuda.FloatTensor(class_weights.astype(np.float32)))
+    modelVars['criterion'] = nn.CrossEntropyLoss(weight=torch.FloatTensor(class_weights.astype(np.float32)).to(modelVars['device']))
 
 if mdlParams.get('with_meta', False):
     if mdlParams['freeze_cnn']:
@@ -247,20 +247,20 @@ for step in range(start_epoch, mdlParams['training_steps'] + 1):
     # One Epoch of training
     if step >= mdlParams['lowerLRat'] - mdlParams['lowerLRAfter']:
         modelVars['scheduler'].step()
-    modelVars['model'].cuda()
+    modelVars['model'].to(modelVars['device'])
     modelVars['model'].train()
     for j, (inputs, labels, indices) in enumerate(modelVars['dataloader_trainInd']):
         # print(indices)
         # t_load = time.time()
         # Run optimization
         if mdlParams.get('with_meta', False):
-            inputs[0] = inputs[0].cuda()
+            inputs[0] = inputs[0].to(modelVars['device'])
             inputs[1] = inputs[1].type_as(inputs[0])
-            inputs[1] = inputs[1].cuda()
+            inputs[1] = inputs[1].to(modelVars['device'])
         else:
-            inputs = inputs[0].cuda()
+            inputs = inputs[0].to(modelVars['device'])
         # print(inputs.shape)
-        labels = labels.cuda()
+        labels = labels.to(modelVars['device'])
         # zero the parameter gradients
         modelVars['optimizer'].zero_grad()
         # forward
@@ -278,9 +278,9 @@ for step in range(start_epoch, mdlParams['training_steps'] + 1):
         for i, (inputs, labels, inds) in enumerate(modelVars['dataloader_valInd']):
             # Get data
             if mdlParams.get('with_meta', False):
-                inputs[0] = inputs[0].cuda()
+                inputs[0] = inputs[0].to(modelVars['device'])
                 inputs[1] = inputs[1].type_as(inputs[0])
-                inputs[1] = inputs[1].cuda()
+                inputs[1] = inputs[1].to(modelVars['device'])
             else:
                 inputs = inputs[0].to(modelVars['device'])
             labels = labels.to(modelVars['device'])
