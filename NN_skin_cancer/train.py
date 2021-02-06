@@ -44,7 +44,10 @@ fold_num = int(sys.argv[4])
 assert(fold_num > 0 and fold_num <= mdlParams['fold'])
 
 # Path name from filename
-mdlParams['saveDirBase'] = mdlParams['saveDir'] + '/' + sys.argv[2] + '/fold' + str(fold_num)
+if not os.path.isdir(mdlParams['saveDir']):
+    os.mkdir(mdlParams['saveDir'])
+mdlParams['saveDir'] = mdlParams['saveDir'] + '/fold' + str(fold_num)
+mdlParams['saveDirBase'] = mdlParams['saveDir'] + '/' + sys.argv[2]
 
 # Set visible devices
 if 'gpu' in sys.argv[3]:

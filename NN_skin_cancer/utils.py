@@ -80,7 +80,7 @@ class ISICDataset(Dataset):
             new_image_path = []
             for i in range(self.numClasses):
                 print('Before folding: ' + str(self.subsets_size[i]))
-                fold_len = self.subsets_size[i] / self.fold
+                fold_len = self.subsets_size[i] // self.mdlParams['fold']
                 self.names_list[i] = self.names_list[i][:(self.fold - 1)*fold_len] + self.names_list[i][self.fold *fold_len:]
                 self.image_path[i] = self.image_path[i][:(self.fold - 1)*fold_len] + self.image_path[i][self.fold *fold_len:]
                 self.subsets_size[i] = len(self.names_list[i])
