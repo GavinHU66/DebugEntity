@@ -11,11 +11,13 @@ import imagesize
 def init(mdlParams_):
     mdlParams = {}
     # Save summaries and model here
-    mdlParams['saveDir'] = './models/model1'
+    mdlParams['saveDir'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/models/model1_meta'
+    mdlParams['model_load_path'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/models/model1'
     # Data is loaded from here
     mdlParams['dataDir'] = './Data'
     mdlParams['with_meta'] = True
-    mdlParams['meta_path'] = 'D:/大四/FYP/ISIC2019/DebugEntity/NN_skin_cancer/meta_data.pkl'
+    mdlParams['load_previous'] = True
+    mdlParams['meta_path'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/meta_data.pkl'
 
     ### Model Selection ###
     mdlParams['model_type'] = 'efficientnet-b0'
@@ -53,6 +55,9 @@ def init(mdlParams_):
     mdlParams['setMean'] = np.array([0.0, 0.0, 0.0])   
     mdlParams['setStd'] = np.array([1.0, 1.0, 1.0])   
 
+    # Cross validation
+    mdlParams['fold'] = 5
+
     # Data AUG
     #mdlParams['full_color_distort'] = True
     mdlParams['autoaugment'] = False
@@ -61,6 +66,7 @@ def init(mdlParams_):
     mdlParams['scale'] = (0.8,1.2)
     mdlParams['shear'] = 10
     mdlParams['cutout'] = 16
+    mdlParams['only_downsmaple'] = False
 
     # Meta settings
     mdlParams['meta_features'] = ['age_approx_0.0', 'age_approx_1.0',

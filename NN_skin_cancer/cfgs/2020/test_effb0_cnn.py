@@ -11,7 +11,8 @@ import imagesize
 def init(mdlParams_):
     mdlParams = {}
     # Save summaries and model here
-    mdlParams['saveDir'] = './models/model1'
+    mdlParams['saveDir'] = './models/model3'
+    mdlParams['model_load_path'] = ''
     # Data is loaded from here
     mdlParams['dataDir'] = './Data'
     mdlParams['with_meta'] = False
@@ -39,7 +40,7 @@ def init(mdlParams_):
     # Divide learning rate by this value
     mdlParams['LRstep'] = 5
     # Maximum number of training iterations
-    mdlParams['training_steps'] = 80 #250
+    mdlParams['training_steps'] = 160
     # Display error every X steps
     mdlParams['display_step'] = 2
     # Scale?

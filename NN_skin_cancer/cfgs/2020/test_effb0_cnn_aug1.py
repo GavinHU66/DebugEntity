@@ -11,12 +11,11 @@ import imagesize
 def init(mdlParams_):
     mdlParams = {}
     # Save summaries and model here
-    mdlParams['saveDir'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/models/model1_meta'
-    mdlParams['model_load_path'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/models/model1'
+    mdlParams['saveDir'] = './models/model5'
+    mdlParams['model_load_path'] = ''
     # Data is loaded from here
     mdlParams['dataDir'] = './Data'
-    mdlParams['with_meta'] = True
-    mdlParams['load_previous'] = True
+    mdlParams['with_meta'] = False
     mdlParams['meta_path'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/meta_data.pkl'
 
     ### Model Selection ###
@@ -41,9 +40,9 @@ def init(mdlParams_):
     # Divide learning rate by this value
     mdlParams['LRstep'] = 5
     # Maximum number of training iterations
-    mdlParams['training_steps'] = 60 #250
+    mdlParams['training_steps'] = 80
     # Display error every X steps
-    mdlParams['display_step'] = 10
+    mdlParams['display_step'] = 2
     # Scale?
     mdlParams['scale_targets'] = False
     # Peak at test error during training? (generally, dont do this!)
@@ -64,8 +63,8 @@ def init(mdlParams_):
     mdlParams['flip_lr_ud'] = True
     mdlParams['full_rot'] = 180
     mdlParams['scale'] = (0.8,1.2)
-    mdlParams['shear'] = 10
-    mdlParams['cutout'] = 16
+    #mdlParams['shear'] = 10
+    #mdlParams['cutout'] = 16
     mdlParams['only_downsmaple'] = False
 
     # Meta settings
@@ -78,7 +77,7 @@ def init(mdlParams_):
     # Factor for scaling up the FC layer
     scale_up_with_larger_b = 1.0
     mdlParams['fc_layers_after'] = [int(1024*scale_up_with_larger_b)]
-    mdlParams['freeze_cnn'] = True
+    mdlParams['freeze_cnn'] = False
     mdlParams['learning_rate_meta'] = 0.00001
     # Normal dropout in fc layers
     mdlParams['dropout_meta'] = 0.4

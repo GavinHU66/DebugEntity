@@ -11,13 +11,13 @@ import imagesize
 def init(mdlParams_):
     mdlParams = {}
     # Save summaries and model here
-    mdlParams['saveDir'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/models/model1_meta'
-    mdlParams['model_load_path'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/models/model1'
+    mdlParams['saveDir'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/models/model2_meta_again'
+    mdlParams['model_load_path'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/models/model2'
     # Data is loaded from here
     mdlParams['dataDir'] = './Data'
     mdlParams['with_meta'] = True
-    mdlParams['load_previous'] = True
     mdlParams['meta_path'] = '/home/ec2-user/ni/DebugEntity/NN_skin_cancer/meta_data.pkl'
+    mdlParams['load_previous'] = True
 
     ### Model Selection ###
     mdlParams['model_type'] = 'efficientnet-b0'
@@ -41,9 +41,9 @@ def init(mdlParams_):
     # Divide learning rate by this value
     mdlParams['LRstep'] = 5
     # Maximum number of training iterations
-    mdlParams['training_steps'] = 60 #250
+    mdlParams['training_steps'] = 80 #250
     # Display error every X steps
-    mdlParams['display_step'] = 10
+    mdlParams['display_step'] = 2
     # Scale?
     mdlParams['scale_targets'] = False
     # Peak at test error during training? (generally, dont do this!)
@@ -61,12 +61,12 @@ def init(mdlParams_):
     # Data AUG
     #mdlParams['full_color_distort'] = True
     mdlParams['autoaugment'] = False
-    mdlParams['flip_lr_ud'] = True
-    mdlParams['full_rot'] = 180
-    mdlParams['scale'] = (0.8,1.2)
-    mdlParams['shear'] = 10
-    mdlParams['cutout'] = 16
-    mdlParams['only_downsmaple'] = False
+    #mdlParams['flip_lr_ud'] = True
+    #mdlParams['full_rot'] = 180
+    #mdlParams['scale'] = (0.8,1.2)
+    #mdlParams['shear'] = 10
+    #mdlParams['cutout'] = 16
+    mdlParams['only_downsmaple'] = True
 
     # Meta settings
     mdlParams['meta_features'] = ['age_approx_0.0', 'age_approx_1.0',

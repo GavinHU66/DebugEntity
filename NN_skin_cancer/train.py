@@ -47,6 +47,7 @@ assert(fold_num > 0 and fold_num <= mdlParams['fold'])
 if not os.path.isdir(mdlParams['saveDir']):
     os.mkdir(mdlParams['saveDir'])
 mdlParams['saveDir'] = mdlParams['saveDir'] + '/fold' + str(fold_num)
+mdlParams['model_load_path'] = mdlParams['model_load_path'] + '/fold' + str(fold_num)
 mdlParams['saveDirBase'] = mdlParams['saveDir'] + '/' + sys.argv[2]
 
 # Set visible devices
@@ -122,9 +123,9 @@ modelVars['model'] = models.getModel(mdlParams)()
 # Load trained model
 if mdlParams.get('load_previous', False):
     # Find best checkpoint
-    files = glob(mdlParams['model_load_path'])
+    files = glob(mdlParams['model_load_path'] + '/*')
     global_steps = np.zeros([len(files)])
-    #print("files",files)
+    print("files",files)
     for i in range(len(files)):
         # Use meta files to find the highest index
         if 'best' not in files[i]:
@@ -231,6 +232,10 @@ if load_old:
     # Initialize model and optimizer
     modelVars['model'].load_state_dict(state['state_dict'])
     modelVars['optimizer'].load_state_dict(state['optimizer'])
+    for state in modelVars['optimizer'].state.values():
+        for k, v in state.items():
+            if torch.is_tensor(v):
+                state[k] = v.to(modelVars['device'])
     start_epoch = state['epoch']+1
     mdlParams['valBest'] = state.get('valBest',1000)
     mdlParams['lastBestInd'] = state.get('lastBestInd',int(np.max(global_steps)))
@@ -361,6 +366,8 @@ for step in range(start_epoch, mdlParams['training_steps'] + 1):
             mdlParams['lastBestInd'] = step
             allData['convergeTime'] = step
             # Save best predictions
+            allData['bestPred'] = predictions
+            allData['targets'] = targets
             allData['bestPred'] = predictions
             allData['targets'] = targets
             # Write to File
