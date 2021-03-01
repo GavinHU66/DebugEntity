@@ -52,6 +52,9 @@ for img in os.listdir(mdlParams['dataDir'] + '/train'):
 
 skf = StratifiedKFold(n_splits=5, shuffle=True)
 
+saveDir = mdlParams['saveDir']
+model_load_path = mdlParams['model_load_path']
+
 # Fold num
 fold_num = 0
 for train_index, valid_index in skf.split(image_path, image_labels):
@@ -59,8 +62,8 @@ for train_index, valid_index in skf.split(image_path, image_labels):
     # Path name from filename
     if not os.path.isdir(mdlParams['saveDir']):
         os.mkdir(mdlParams['saveDir'])
-    mdlParams['saveDir'] = mdlParams['saveDir'] + '/fold' + str(fold_num)
-    mdlParams['model_load_path'] = mdlParams['model_load_path'] + '/fold' + str(fold_num)
+    mdlParams['saveDir'] = saveDir + '/fold' + str(fold_num)
+    mdlParams['model_load_path'] = model_load_path + '/fold' + str(fold_num)
     mdlParams['saveDirBase'] = mdlParams['saveDir'] + '/' + sys.argv[2]
 
     # Set visible devices
