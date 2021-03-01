@@ -92,6 +92,7 @@ for train_index, valid_index in skf.split(image_path, image_labels):
 
     # Save training progress in here
     save_dict = {}
+    save_dict['train_loss'] = []
     save_dict['acc'] = []
     save_dict['loss'] = []
     save_dict['wacc'] = []
@@ -292,10 +293,11 @@ for train_index, valid_index in skf.split(image_path, image_labels):
                 # backward + optimize only if in training phase
                 loss.backward()
                 modelVars['optimizer'].step()
+            l = loss.detach()
             if j == 0:
-                train_loss = np.array([loss.cpu().numpy()])
+                train_loss = np.array([l.cpu().numpy()])
             else:
-                train_loss = np.concatenate((train_loss, np.array([loss.cpu().numpy()])), 0)
+                train_loss = np.concatenate((train_loss, np.array([l.cpu().numpy()])), 0)
         if step % mdlParams['display_step'] == 0 or step == 1:
             # Calculate evaluation metrics
             # Adjust model state
