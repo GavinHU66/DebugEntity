@@ -230,10 +230,10 @@ class HAMDataset(Dataset):
         self.image_meta = []
         for img in os.listdir(self.root):
             id = img.split('.')[0]
-            label = self.meta_df.loc[self.meta_df['image_id'] == id, 'dx'][0]
+            label = list(self.meta_df.loc[self.meta_df['image_id'] == id, 'dx'])[0]
             self.image_labels.append(CLASS_LABELS.index(label))
             self.subsets_size[CLASS_LABELS.index(label)] += 1
-            self.image_meta.append(self.meta_df.loc[id, self.mdlParams['meta_features']].to_numpy())
+            self.image_meta.append(self.meta_df.loc[self.meta_df['image_id'] == id, self.mdlParams['meta_features']].to_numpy())
             self.image_path.append(os.path.join(self.root, img))
         self.image_path = np.asarray(self.image_path)
         self.image_labels = np.asarray(self.image_labels)

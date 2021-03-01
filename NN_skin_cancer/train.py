@@ -46,7 +46,7 @@ image_path = []
 image_labels = []
 for img in os.listdir(mdlParams['dataDir'] + '/train'):
     id = img.split('.')[0]
-    label = meta_df.loc[meta_df['image_id'] == id, 'dx'][0]
+    label = list(meta_df.loc[meta_df['image_id'] == id, 'dx'])[0]
     image_labels.append(CLASS_LABELS.index(label))
     image_path.append(os.path.join(mdlParams['dataDir'] + '/train', img))
 
