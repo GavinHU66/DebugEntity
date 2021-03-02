@@ -9,7 +9,7 @@ import math
 from PIL import Image
 import types
 import pandas as pd
-from tools.auto_augment import AutoAugment, Cutout
+from RandAugment import RandAugment
 
 
 # Define ISIC Dataset Class
@@ -117,8 +117,8 @@ class ISICDataset(Dataset):
             else:
                 all_transforms.append(transforms.ColorJitter(brightness=32. / 255., saturation=0.5))
             # Autoaugment
-            if self.mdlParams.get('autoaugment', False):
-                all_transforms.append(AutoAugment())
+            if self.mdlParams.get('randaugment', False):
+                all_transforms.append(RandAugment(3, 9))
             # Cutout
             if self.mdlParams.get('cutout', 0) > 0:
                 all_transforms.append(Cutout_v0(n_holes=1, length=self.mdlParams['cutout']))
@@ -273,8 +273,8 @@ class HAMDataset(Dataset):
             else:
                 all_transforms.append(transforms.ColorJitter(brightness=32. / 255., saturation=0.5))
             # Autoaugment
-            if self.mdlParams.get('autoaugment', False):
-                all_transforms.append(AutoAugment())
+            if self.mdlParams.get('randaugment', False):
+                all_transforms.append(RandAugment(3, 9))
             # Cutout
             if self.mdlParams.get('cutout', 0) > 0:
                 all_transforms.append(Cutout_v0(n_holes=1, length=self.mdlParams['cutout']))
