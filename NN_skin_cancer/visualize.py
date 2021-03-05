@@ -1,7 +1,13 @@
 import numpy as np
 import scipy.io as scio
 import matplotlib.pylab as plt
+import pickle
+import seaborn as sn
+import pandas as pd
 
+###################################################
+# functions for visualizing waccBest wacc, auc, sens, spec train_loss, loss, acc, f1, 
+###################################################
 def read_mat(path):
     return scio.loadmat(path)
 
@@ -37,15 +43,10 @@ def plot2curve(x_arr,y1_arr,y2_arr,title,xlabel,ylabel,label1,label2):
     plt.legend()
     plt.show()
 
-def wacc_mean_var(best_wacc):
-    print(np.mean(best_wacc))
-    print(np.var(best_wacc))
-
 # plot
 for fold_num in range(5):
     
     print('fold'+str(fold_num+1)+':')
-    
     path='./fold'+str(fold_num+1)+'/progression_valInd.mat'
     data = read_mat(path)
     
@@ -120,3 +121,84 @@ for fold_num in range(5):
         title='spec per class',
         xlabel='epoch',
         ylabel='spec')
+
+###################################################
+# functions for visualizing waccBest
+###################################################
+# load .pkl file
+def read_pkl(path):
+    dict_data = {}
+    with open(path, 'rb') as fo:
+        dict_data = pickle.load(fo, encoding='bytes')
+    return dict_data
+
+# print mean and var for each class in fold(1-5)/model.pk
+def print_waccBest_mean_var():
+    waccBest_arrs = []
+    for fold_num in range(5):
+        dict_data = {}
+        dict_data = read_pkl('./fold'+str(fold_num+1)+'/model.pkl')
+        waccBest_arr = dict_data['waccBest']
+        waccBest_arrs.append(waccBest_arr)
+
+    for class_num in range(len(waccBest_arrs[0])):
+        class_value = []
+        for fold_num in range(5):
+            class_value.append(waccBest_arrs[fold_num][class_num])
+        print(np.mean(class_value))
+        print(np.var(class_value))
+        print('\n')
+print_waccBest_mean_var()
+
+
+###################################################
+# functions for visualizing confusion matrix
+###################################################
+# visualize confusion matrix
+def view_confusion_matrix(conf):
+    df_cm = pd.DataFrame(conf, range(7), range(7))
+    sn.set(font_scale=1.4) # for label size
+    sn.heatmap(df_cm, annot=True, annot_kws={"size": 12}) # font size
+    plt.show()
+
+# parse 1st line under 'Confusion Matrix' in .log
+def parse_line1(line1):
+    line1 = line1[2:len(line1)-1]
+    line1 = line1.split()
+    line1 = [int(s) for s in line1]
+    return line1
+
+# parse 2nd-6th line under 'Confusion Matrix' in .log
+def parse_line2to6(line2to6):
+    line2to6 = line2to6[2:len(line2to6)-1]
+    line2to6 = line2to6.split()
+    line2to6 = [int(s) for s in line2to6]
+    return line2to6
+
+# parse 7th line under 'Confusion Matrix' in .log
+def parse_line7(line7):
+    line7 = line7[2:len(line7)-2]
+    line7 = line7.split()
+    line7 = [int(s) for s in line7]
+    return line7
+
+# visualize confusion matrix printed in .log
+def visualize_confusion_matrix_from_log():
+    file = open('train_ham_effb1.log', 'r')
+    lines = file.read().splitlines()
+    for line_idx in range(len(lines)):
+        if lines[line_idx] == 'Confusion Matrix':
+
+            line1 = parse_line1(lines[line_idx+1])        
+            line2 = parse_line2to6(lines[line_idx+2])
+            line3 = parse_line2to6(lines[line_idx+3])
+            line4 = parse_line2to6(lines[line_idx+4])
+            line5 = parse_line2to6(lines[line_idx+5])
+            line6 = parse_line2to6(lines[line_idx+6])
+            line7 = parse_line7(lines[line_idx+7])
+
+            confusion_matrix = [line1,line2,line3,line4,line5,line6,line7]
+            # TODO: need to normalize the previous confusion matrix in the log file before viewing
+            view_confusion_matrix(confusion_matrix)
+
+visualize_confusion_matrix_from_log()
