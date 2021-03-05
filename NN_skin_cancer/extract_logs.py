@@ -14,7 +14,7 @@ for ex in experiments:
     for dir in os.listdir(os.path.join(models, 'model_' + ex)):
         if dir.startswith("fold"):
             tgt1 = os.path.join(models, 'model_' + ex, dir, 'progression_valInd.mat')
-            tgt2 = os.path.join(models, 'model_' + ex, dir, "2020.ham" + ex, 'model.pkl')
+            tgt2 = os.path.join(models, 'model_' + ex, dir, "2020." + ex, 'model.pkl')
             dest = os.path.join(ex_path, dir)
             os.mkdir(dest)
             os.system('cp %s %s' % (tgt1, dest))
