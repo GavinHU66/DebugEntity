@@ -43,7 +43,23 @@ def plot2curve(x_arr,y1_arr,y2_arr,title,xlabel,ylabel,label1,label2):
     plt.legend()
     plt.show()
 
-# plot
+# example:
+# plot 
+#
+# put the file directory as:
+# |-- visualzation.py
+# |-- fold1
+#       |-- progression_valInd.mat
+# |-- fold2
+#       |-- progression_valInd.mat
+# |-- fold3
+#       |-- progression_valInd.mat
+# |-- fold4
+#       |-- progression_valInd.mat
+# |-- fold5
+#       |-- progression_valInd.mat
+# 
+# or you can change the path string: path='./fold'+str(fold_num+1)+'/progression_valInd.mat'
 for fold_num in range(5):
     
     print('fold'+str(fold_num+1)+':')
@@ -148,6 +164,22 @@ def print_waccBest_mean_var():
         print(np.mean(class_value))
         print(np.var(class_value))
         print('\n')
+
+# example:
+# put the file directory as:
+# |-- visualzation.py
+# |-- fold1
+#       |-- model.pkl
+# |-- fold2
+#       |-- model.pkl
+# |-- fold3
+#       |-- model.pkl
+# |-- fold4
+#       |-- model.pkl
+# |-- fold5
+#       |-- model.pkl
+#
+# or you can change the path string of "dict_data = read_pkl('./fold'+str(fold_num+1)+'/model.pkl')"
 print_waccBest_mean_var()
 
 
@@ -183,8 +215,8 @@ def parse_line7(line7):
     return line7
 
 # visualize confusion matrix printed in .log
-def visualize_confusion_matrix_from_log():
-    file = open('train_ham_effb1.log', 'r')
+def visualize_confusion_matrix_from_log(path):
+    file = open(path, 'r')
     lines = file.read().splitlines()
     for line_idx in range(len(lines)):
         if lines[line_idx] == 'Confusion Matrix':
@@ -201,4 +233,6 @@ def visualize_confusion_matrix_from_log():
             # TODO: need to normalize the previous confusion matrix in the log file before viewing
             view_confusion_matrix(confusion_matrix)
 
-visualize_confusion_matrix_from_log()
+# example:
+path = 'train_ham_effb1.log' # depends on where the log file is
+visualize_confusion_matrix_from_log(path)
