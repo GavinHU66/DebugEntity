@@ -68,6 +68,7 @@ for train_index, valid_index in skf.split(image_path, image_labels):
 
     # Set visible devices
     os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[3]
+    device_ids = [int(id) for id in sys.argv[3].split(',')]
 
     # Check if there is something to load
     load_old = 0
@@ -261,6 +262,7 @@ for train_index, valid_index in skf.split(image_path, image_labels):
         if step >= mdlParams['lowerLRat'] - mdlParams['lowerLRAfter']:
             modelVars['scheduler'].step()
         modelVars['model'].cuda()
+        modelVars['model'] = torch.nn.DataParallel(modelVars['model'], device_ids=device_ids)
         modelVars['model'].train()
         for j, (inputs, labels, indices) in enumerate(modelVars['dataloader_trainInd']):
             # print(indices)
