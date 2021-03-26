@@ -118,7 +118,7 @@ class ISICDataset(Dataset):
                 all_transforms.append(transforms.ColorJitter(brightness=32. / 255., saturation=0.5))
             # Autoaugment
             if self.mdlParams.get('randaugment', False):
-                all_transforms.append(RandAugment(3, 9))
+                all_transforms.append(RandAugment(self.mdlParams.get('N'), self.mdlParams.get('M')))
             # Cutout
             if self.mdlParams.get('cutout', 0) > 0:
                 all_transforms.append(Cutout_v0(n_holes=1, length=self.mdlParams['cutout']))
@@ -274,7 +274,7 @@ class HAMDataset(Dataset):
                 all_transforms.append(transforms.ColorJitter(brightness=32. / 255., saturation=0.5))
             # Autoaugment
             if self.mdlParams.get('randaugment', False):
-                all_transforms.append(RandAugment(3, 9))
+                all_transforms.append(RandAugment(self.mdlParams.get('N'), self.mdlParams.get('M')))
             # Cutout
             if self.mdlParams.get('cutout', 0) > 0:
                 all_transforms.append(Cutout_v0(n_holes=1, length=self.mdlParams['cutout']))
