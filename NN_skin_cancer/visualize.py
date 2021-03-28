@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 import scipy.io as scio
 import matplotlib.pylab as plt
 import pickle
@@ -63,7 +64,7 @@ def plot2curve(x_arr,y1_arr,y2_arr,title,xlabel,ylabel,label1,label2):
 for fold_num in range(5):
     
     print('fold'+str(fold_num+1)+':')
-    path='./fold'+str(fold_num+1)+'/progression_valInd.mat'
+    path = sys.argv[1] + '/fold'+str(fold_num+1)+'/progression_valInd.mat'
     data = read_mat(path)
     
     plot2curve(
@@ -153,7 +154,7 @@ def print_waccBest_mean_var():
     waccBest_arrs = []
     for fold_num in range(5):
         dict_data = {}
-        dict_data = read_pkl('./fold'+str(fold_num+1)+'/model.pkl')
+        dict_data = read_pkl(sys.argv[1] + '/fold'+str(fold_num+1)+'/model.pkl')
         waccBest_arr = dict_data['waccBest']
         waccBest_arrs.append(waccBest_arr)
 
@@ -235,4 +236,4 @@ def visualize_confusion_matrix_from_log(path):
 
 # example:
 path = 'train_ham_effb1.log' # depends on where the log file is
-visualize_confusion_matrix_from_log(path)
+#visualize_confusion_matrix_from_log(path)

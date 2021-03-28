@@ -119,6 +119,7 @@ for train_index, valid_index in skf.split(image_path, image_labels):
         allData['targets'] = {}
 
     modelVars = {}
+    modelVars['device'] = torch.device("cuda: " + str(device_ids[0]))
 
     # For train
     dataset_train = utils.HAMDataset(mdlParams, 'trainInd', index=train_index)
@@ -190,9 +191,11 @@ for train_index, valid_index in skf.split(image_path, image_labels):
 
     if mdlParams['focal_loss']:
         modelVars['criterion'] = utils.FocalLoss(mdlParams['numClasses'],
-                                                 alpha=torch.FloatTensor(class_weights.astype(np.float32)).cuda())
+                                                 alpha=torch.FloatTensor(class_weights.astype(np.float32)))
     else:
-        modelVars['criterion'] = nn.CrossEntropyLoss(weight=torch.FloatTensor(class_weights.astype(np.float32)).cuda())
+        modelVars['criterion'] = nn.CrossEntropyLoss(weight=torch.FloatTensor(class_weights.astype(np.float32)))
+
+    modelVars['criterion'].to(modelVars['device'])
 
     if mdlParams.get('with_meta', False):
         if mdlParams['freeze_cnn']:
@@ -261,8 +264,8 @@ for train_index, valid_index in skf.split(image_path, image_labels):
         # One Epoch of training
         if step >= mdlParams['lowerLRat'] - mdlParams['lowerLRAfter']:
             modelVars['scheduler'].step()
-        modelVars['model'].cuda()
         modelVars['model'] = torch.nn.DataParallel(modelVars['model'], device_ids=device_ids)
+        modelVars['model'].to(modelVars['device'])
         modelVars['model'].train()
         for j, (inputs, labels, indices) in enumerate(modelVars['dataloader_trainInd']):
             # print(indices)
