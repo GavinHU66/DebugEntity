@@ -119,7 +119,7 @@ for train_index, valid_index in skf.split(image_path, image_labels):
         allData['targets'] = {}
 
     modelVars = {}
-    modelVars['device'] = torch.device("cuda: " + str(device_ids[0]))
+    modelVars['device'] = torch.device("cuda:" + str(device_ids[0]))
 
     # For train
     dataset_train = utils.HAMDataset(mdlParams, 'trainInd', index=train_index)
@@ -260,31 +260,31 @@ for train_index, valid_index in skf.split(image_path, image_labels):
     # Run training
     start_time = time.time()
     print("Start training...")
+    modelVars['model'] = torch.nn.DataParallel(modelVars['model'], device_ids=device_ids)
+    modelVars['model'].to(modelVars['device'])
     for step in range(start_epoch, mdlParams['training_steps'] + 1):
         # One Epoch of training
         if step >= mdlParams['lowerLRat'] - mdlParams['lowerLRAfter']:
             modelVars['scheduler'].step()
-        modelVars['model'] = torch.nn.DataParallel(modelVars['model'], device_ids=device_ids)
-        modelVars['model'].to(modelVars['device'])
         modelVars['model'].train()
-        for j, (inputs, labels, indices) in enumerate(modelVars['dataloader_trainInd']):
+        for j, (inputs1, labels, indices) in enumerate(modelVars['dataloader_trainInd']):
             # print(indices)
             # t_load = time.time()
             # Run optimization
             if mdlParams.get('with_meta', False):
-                inputs[0] = inputs[0].cuda()
-                inputs[1] = inputs[1].type_as(inputs[0])
-                inputs[1] = inputs[1].cuda()
+                inputs1[0] = inputs1[0].to(modelVars['device'])
+                inputs1[1] = inputs1[1].type_as(inputs1[0])
+                inputs1[1] = inputs1[1].to(modelVars['device'])
             else:
-                inputs = inputs[0].cuda()
+                inputs1 = inputs1[0].to(modelVars['device'])
             # print(inputs.shape)
-            labels = labels.cuda()
+            labels = labels.to(modelVars['device'])
             # zero the parameter gradients
             modelVars['optimizer'].zero_grad()
             # forward
             # track history if only in train
             with torch.set_grad_enabled(True):
-                outputs = modelVars['model'](inputs)
+                outputs = modelVars['model'](inputs1)
                 loss = modelVars['criterion'](outputs, labels)
                 # backward + optimize only if in training phase
                 loss.backward()
@@ -301,12 +301,12 @@ for train_index, valid_index in skf.split(image_path, image_labels):
             for i, (inputs, labels, inds) in enumerate(modelVars['dataloader_valInd']):
                 # Get data
                 if mdlParams.get('with_meta', False):
-                    inputs[0] = inputs[0].cuda()
+                    inputs[0] = inputs[0].to(modelVars['device'])
                     inputs[1] = inputs[1].type_as(inputs[0])
-                    inputs[1] = inputs[1].cuda()
+                    inputs[1] = inputs[1].to(modelVars['device'])
                 else:
-                    inputs = inputs[0].cuda()
-                labels = labels.cuda()
+                    inputs = inputs[0].to(modelVars['device'])
+                labels = labels.to(modelVars['device'])
                 with torch.set_grad_enabled(False):
                     # Get outputs
                     outputs = modelVars['model'](inputs)
