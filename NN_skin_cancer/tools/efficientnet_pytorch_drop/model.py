@@ -288,13 +288,16 @@ class EfficientNet(nn.Module):
 
         # Blocks
         block_len = len(self._blocks)
+        self.drop_blocks = []
+        self.drop_blocks.append(DropBlock2D(block_size=3, drop_prob=0.3))
+        self.drop_blocks.append(DropBlock2D(block_size=3, drop_prob=0.3))
         for idx, block in enumerate(self._blocks):
             drop_connect_rate = self._global_params.drop_connect_rate
             if drop_connect_rate:
                 drop_connect_rate *= float(idx) / len(self._blocks) # scale drop connect_rate
             x = block(x, drop_connect_rate=drop_connect_rate)
             if idx >= (block_len - 2):
-                x = DropBlock2D(block_size=3, drop_prob=0.3)
+                x = self.drop_blocks[block_len - idx - 1](x)
 
         # Head
         x = self._swish(self._bn1(self._conv_head(x)))
