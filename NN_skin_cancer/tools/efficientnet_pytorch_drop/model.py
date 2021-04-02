@@ -186,6 +186,9 @@ class EfficientNet(nn.Module):
         image_size = calculate_output_image_size(image_size, 2)
 
         # Build blocks
+        self.drop_blocks = []
+        self.drop_blocks.append(DropBlock2D(block_size=3, drop_prob=0.3))
+        self.drop_blocks.append(DropBlock2D(block_size=3, drop_prob=0.3))
         self._blocks = nn.ModuleList([])
         for block_args in self._blocks_args:
 
@@ -288,9 +291,6 @@ class EfficientNet(nn.Module):
 
         # Blocks
         block_len = len(self._blocks)
-        self.drop_blocks = []
-        self.drop_blocks.append(DropBlock2D(block_size=3, drop_prob=0.3))
-        self.drop_blocks.append(DropBlock2D(block_size=3, drop_prob=0.3))
         for idx, block in enumerate(self._blocks):
             drop_connect_rate = self._global_params.drop_connect_rate
             if drop_connect_rate:
