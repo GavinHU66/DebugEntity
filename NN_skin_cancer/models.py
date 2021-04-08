@@ -5,7 +5,7 @@ import functools
 import torch.nn.functional as F
 import types
 import torch
-from tools.efficientnet_pytorch_drop import EfficientNet
+from efficientnet_pytorch import EfficientNet
 from collections import OrderedDict
 import torch.nn as nn
 
