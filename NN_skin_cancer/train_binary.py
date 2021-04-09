@@ -132,10 +132,10 @@ for train_index, valid_index in skf.split(image_path, image_labels):
 
     # For train
     dataset_train = utils.BinaryDataset(mdlParams, 'trainInd', index=train_index)
-    modelVars['dataloader_trainInd'] = DataLoader(dataset_train, batch_size=mdlParams['batchSize'], shuffle=True)
+    modelVars['dataloader_trainInd'] = DataLoader(dataset_train, batch_size=mdlParams['batchSize'], shuffle=True, pin_memory=True)
     # For val
     dataset_val = utils.BinaryDataset(mdlParams, 'valInd', index=valid_index)
-    modelVars['dataloader_valInd'] = DataLoader(dataset_val, batch_size=mdlParams['batchSize'], shuffle=False)
+    modelVars['dataloader_valInd'] = DataLoader(dataset_val, batch_size=mdlParams['batchSize'], shuffle=False, pin_memory=True)
 
     # Define model
     modelVars['model'] = models.getModel(mdlParams)()
