@@ -303,7 +303,7 @@ class HAMDataset(Dataset):
         path = self.image_path[idx]
         x = Image.open(path)
         y = self.image_labels[idx]
-        meta_vector = self.image_meta[idx]
+        meta_vector = self.image_meta[idx][0]
 
         # Apply
         x = self.composed(x)
@@ -428,7 +428,7 @@ class MetaAugDataset(Dataset):
         path = self.image_path[idx]
         x = Image.open(path)
         y = self.image_labels[idx]
-        x_meta = self.image_meta[idx]
+        x_meta = self.image_meta[idx][0]
 
         # Apply
         x = self.composed(x)
@@ -440,7 +440,7 @@ class MetaAugDataset(Dataset):
                 if 'sex' in self.mdlParams['meta_types']:
                     x_meta[18:21] = np.zeros([3])
             if torch.rand(1) < self.mdlParams['drop_augment']:
-                if 'location' in self.mdlParams['meta_features']:
+                if 'location' in self.mdlParams['drop_augment']:
                     x_meta[21:36] = np.zeros([15])
         return (x, x_meta), y, idx
 
