@@ -440,7 +440,7 @@ class MetaAugDataset(Dataset):
                 if 'sex' in self.mdlParams['meta_types']:
                     x_meta[18:21] = np.zeros([3])
             if torch.rand(1) < self.mdlParams['drop_augment']:
-                if 'location' in self.mdlParams['drop_augment']:
+                if 'location' in self.mdlParams['meta_types']:
                     x_meta[21:36] = np.zeros([15])
         return (x, x_meta), y, idx
 
