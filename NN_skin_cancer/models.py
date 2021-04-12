@@ -75,7 +75,7 @@ def modify_meta(mdlParams,model):
         if 'efficient' in mdlParams['model_type']:
             num_cnn_features = model._fc.in_features
         else:
-            num_cnn_features = model.last_linear.in_features
+            num_cnn_features = model.fc.in_features
         model.meta_after = nn.Sequential(nn.Linear(mdlParams['fc_layers_before'][-1]+num_cnn_features,mdlParams['fc_layers_after'][0]),
                                     nn.BatchNorm1d(mdlParams['fc_layers_after'][0]),
                                     nn.ReLU())
@@ -87,7 +87,7 @@ def modify_meta(mdlParams,model):
     if 'efficient' in mdlParams['model_type']:
         model._fc = nn.Linear(classifier_in_features, mdlParams['numClasses'])
     else:
-        model.last_linear = nn.Linear(classifier_in_features, mdlParams['numClasses'])
+        model.fc = nn.Linear(classifier_in_features, mdlParams['numClasses'])
 
     # Modify forward pass
     def new_forward(self, inputs):
@@ -126,7 +126,7 @@ def modify_meta(mdlParams,model):
         if 'efficient' in mdlParams['model_type']:
             output = self._fc(features)
         else:
-            output = self.last_linear(features)
+            output = self.fc(features)
         return output
     model.forward = types.MethodType(new_forward, model)
     return model

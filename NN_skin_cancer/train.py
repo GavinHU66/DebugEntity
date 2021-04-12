@@ -177,8 +177,8 @@ for train_index, valid_index in skf.split(image_path, image_labels):
         num_ftrs = modelVars['model']._fc.in_features
         modelVars['model']._fc = nn.Linear(num_ftrs, mdlParams['numClasses'])
     else:
-        num_ftrs = modelVars['model'].last_linear.in_features
-        modelVars['model'].last_linear = nn.Linear(num_ftrs, mdlParams['numClasses'])
+        num_ftrs = modelVars['model'].fc.in_features
+        modelVars['model'].fc = nn.Linear(num_ftrs, mdlParams['numClasses'])
 
     # Take care of meta case
     if mdlParams.get('with_meta', False):
@@ -193,7 +193,7 @@ for train_index, valid_index in skf.split(image_path, image_labels):
                     param.requires_grad = True
             else:
                 # Activate fc
-                for param in modelVars['model'].last_linear.parameters():
+                for param in modelVars['model'].fc.parameters():
                     param.requires_grad = True
         else:
             # mark cnn parameters
