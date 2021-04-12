@@ -128,7 +128,7 @@ def modify_meta(mdlParams,model):
         else:
             output = self.last_linear(features)
         return output
-    model.forward  = types.MethodType(new_forward, model)
+    model.forward = types.MethodType(new_forward, model)
     return model
 
 

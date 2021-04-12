@@ -172,6 +172,14 @@ for train_index, valid_index in skf.split(image_path, image_labels):
     subsets_size = np.array(dataset_train.subsets_size)
     class_weights = 1.0/subsets_size
 
+    if 'efficient' in mdlParams['model_type']:
+        # Do nothing, output is prepared
+        num_ftrs = modelVars['model']._fc.in_features
+        modelVars['model']._fc = nn.Linear(num_ftrs, mdlParams['numClasses'])
+    else:
+        num_ftrs = modelVars['model'].last_linear.in_features
+        modelVars['model'].last_linear = nn.Linear(num_ftrs, mdlParams['numClasses'])
+
     # Take care of meta case
     if mdlParams.get('with_meta', False):
         # freeze cnn first
@@ -179,9 +187,14 @@ for train_index, valid_index in skf.split(image_path, image_labels):
             # deactivate all
             for param in modelVars['model'].parameters():
                 param.requires_grad = False
-            # Activate fc
-            for param in modelVars['model']._fc.parameters():
-                param.requires_grad = True
+            if 'efficient' in mdlParams['model_type']:
+                # Activate fc
+                for param in modelVars['model']._fc.parameters():
+                    param.requires_grad = True
+            else:
+                # Activate fc
+                for param in modelVars['model'].last_linear.parameters():
+                    param.requires_grad = True
         else:
             # mark cnn parameters
             for param in modelVars['model'].parameters():
