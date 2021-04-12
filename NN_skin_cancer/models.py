@@ -12,7 +12,8 @@ from efficientnet_pytorch import EfficientNet
 from collections import OrderedDict
 import torch.nn as nn
 
-drop = False
+drop1 = False
+drop2 = False
 drop_block = DropBlock2D(block_size=3, drop_prob=0.3)
 
 def Resnet50(config):
@@ -103,8 +104,10 @@ def modify_meta(mdlParams,model):
             cnn_features = self.layer1(cnn_features)
             cnn_features = self.layer2(cnn_features)
             cnn_features = self.layer3(cnn_features)
+            if drop2:
+                cnn_features = drop_block(cnn_features)
             cnn_features = self.layer4(cnn_features)
-            if drop:
+            if drop1:
                 cnn_features = drop_block(cnn_features)
             cnn_features = self.avg_pool(cnn_features)
             if self.dropout is not None:
