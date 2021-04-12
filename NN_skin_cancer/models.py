@@ -5,11 +5,21 @@ import functools
 import torch.nn.functional as F
 import types
 import torch
+from torchvision import models
 #from tools.efficientnet_pytorch_drop import EfficientNet
+from dropblock import DropBlock2D
 from efficientnet_pytorch import EfficientNet
 from collections import OrderedDict
 import torch.nn as nn
 
+drop = False
+drop_block = DropBlock2D(block_size=3, drop_prob=0.3)
+
+def Resnet50(config):
+    return models.resnet50(pretrained=True)
+
+def Resnet101(config):
+    return models.resnet101(pretrained=True)
 
 def efficientnet_b0(config):
     return EfficientNet.from_pretrained('efficientnet-b0',num_classes=config['numClasses'])
@@ -61,7 +71,10 @@ def modify_meta(mdlParams,model):
                                     nn.Dropout(p=mdlParams['dropout_meta']))
     # Define fc layers after
     if len(mdlParams['fc_layers_after']) > 0:
-        num_cnn_features = model._fc.in_features
+        if 'efficient' in mdlParams['model_type']:
+            num_cnn_features = model._fc.in_features
+        else:
+            num_cnn_features = model.last_linear.in_features
         model.meta_after = nn.Sequential(nn.Linear(mdlParams['fc_layers_before'][-1]+num_cnn_features,mdlParams['fc_layers_after'][0]),
                                     nn.BatchNorm1d(mdlParams['fc_layers_after'][0]),
                                     nn.ReLU())
@@ -70,17 +83,33 @@ def modify_meta(mdlParams,model):
         model.meta_after = None
         classifier_in_features = mdlParams['fc_layers_before'][-1]+model._fc.in_features
     # Modify classifier
-    model._fc = nn.Linear(classifier_in_features, mdlParams['numClasses'])
+    if 'efficient' in mdlParams['model_type']:
+        model._fc = nn.Linear(classifier_in_features, mdlParams['numClasses'])
+    else:
+        model.last_linear = nn.Linear(classifier_in_features, mdlParams['numClasses'])
 
     # Modify forward pass
     def new_forward(self, inputs):
         x, meta_data = inputs
-        # Convolution layers
-        cnn_features = self.extract_features(x)
-        # Pooling and final linear layer
-        cnn_features = F.adaptive_avg_pool2d(cnn_features, 1).squeeze(-1).squeeze(-1)
-        if self._dropout:
-            cnn_features = F.dropout(cnn_features, p=self._global_params.dropout_rate, training=self.training)
+        if 'efficient' in mdlParams['model_type']:
+            # Convolution layers
+            cnn_features = self.extract_features(x)
+            # Pooling and final linear layer
+            cnn_features = F.adaptive_avg_pool2d(cnn_features, 1).squeeze(-1).squeeze(-1)
+            if self._dropout:
+                cnn_features = F.dropout(cnn_features, p=self._global_params.dropout_rate, training=self.training)
+        else:
+            cnn_features = self.layer0(x)
+            cnn_features = self.layer1(cnn_features)
+            cnn_features = self.layer2(cnn_features)
+            cnn_features = self.layer3(cnn_features)
+            cnn_features = self.layer4(cnn_features)
+            if drop:
+                cnn_features = drop_block(cnn_features)
+            cnn_features = self.avg_pool(cnn_features)
+            if self.dropout is not None:
+                cnn_features = self.dropout(cnn_features)
+            cnn_features = cnn_features.view(cnn_features.size(0), -1)
         # Meta part
         #print(meta_data.shape,meta_data)
         meta_features = self.meta_before(meta_data)
@@ -91,13 +120,17 @@ def modify_meta(mdlParams,model):
         if self.meta_after is not None:
             features = self.meta_after(features)
         # Classifier
-        output = self._fc(features)
+        if 'efficient' in mdlParams['model_type']:
+            output = self._fc(features)
+        else:
+            output = self.last_linear(features)
         return output
     model.forward  = types.MethodType(new_forward, model)
     return model
 
 
-model_map = OrderedDict([
+model_map = OrderedDict([('Resnet50', Resnet50),
+                        ('Resnet101', Resnet101),
                         ('efficientnet-b0', efficientnet_b0),
                         ('efficientnet-b1', efficientnet_b1),
                         ('efficientnet-b2', efficientnet_b2),
