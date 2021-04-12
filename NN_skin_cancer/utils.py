@@ -270,8 +270,8 @@ class HAMDataset(Dataset):
                                                              saturation=mdlParams.get('saturation_aug', 0.5),
                                                              contrast=mdlParams.get('contrast_aug', 0.5),
                                                              hue=mdlParams.get('hue_aug', 0.2)))
-            else:
-                all_transforms.append(transforms.ColorJitter(brightness=32. / 255., saturation=0.5))
+            #else:
+            #    all_transforms.append(transforms.ColorJitter(brightness=32. / 255., saturation=0.5))
             # Autoaugment
             if self.mdlParams.get('randaugment', False):
                 all_transforms.append(RandAugment(self.mdlParams.get('N'), self.mdlParams.get('M')))
