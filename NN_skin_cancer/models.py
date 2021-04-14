@@ -14,6 +14,9 @@ import torch.nn as nn
 
 drop1 = False
 drop2 = False
+drop3 = False
+drop4 = True
+drop5 = False
 drop_block = DropBlock2D(block_size=3, drop_prob=0.3)
 
 def Resnet50(config):
@@ -101,8 +104,14 @@ def modify_meta(mdlParams,model):
                 cnn_features = F.dropout(cnn_features, p=self._global_params.dropout_rate, training=self.training)
         else:
             cnn_features = self.layer0(x)
+            if drop5:
+                cnn_features = drop_block(cnn_features)
             cnn_features = self.layer1(cnn_features)
+            if drop4:
+                cnn_features = drop_block(cnn_features)
             cnn_features = self.layer2(cnn_features)
+            if drop3:
+                cnn_features = drop_block(cnn_features)
             cnn_features = self.layer3(cnn_features)
             if drop2:
                 cnn_features = drop_block(cnn_features)
